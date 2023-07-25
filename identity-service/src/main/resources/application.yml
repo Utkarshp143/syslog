@@ -1,0 +1,39 @@
+
+
+# MongoDB connection properties
+
+spring:
+
+  data:
+
+    mongodb:
+
+      host: localhost
+
+      port: 27017
+
+      database: microservices_db
+
+#      username: db_username
+
+#      password: db_password
+   
+  application:
+    name: IDENTITY-SERVICE
+
+
+
+
+
+
+eureka:
+  client:
+    service-url:
+      defaultZone : http://localhost:8761/eureka/
+
+
+server:
+  port: 9898
+  
+
+   
