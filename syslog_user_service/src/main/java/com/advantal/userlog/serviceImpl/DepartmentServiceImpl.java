@@ -80,13 +80,14 @@ public class DepartmentServiceImpl implements DepartmentService{
 	@Override
 	public Response createDepartment(DepartmentDto department) {
 		Response response = new Response();
-		if(department.getDepartmentName().isEmpty()) {
-			response.setStatusCode("400");
-		    response.setMessage("Department Name cannot be blank!");
-		    
-		}
+		Department findByDepartmentName = this.departmentRepository.findByDepartmentName(department.getDepartmentName().toLowerCase().trim());
+
+		if (department.getDepartmentName().isEmpty()) { 
+	        response.setStatusCode("400");
+	        response.setMessage("Department Name cannot be blank!");
+	        return response; 
+	    }
 		try {
-			Department findByDepartmentName = this.departmentRepository.findByDepartmentName(department.getDepartmentName().toLowerCase().trim());
 			if(findByDepartmentName == null) {
 				Department dept = Department.builder()
 						.departmentName(department.getDepartmentName().toLowerCase().trim())

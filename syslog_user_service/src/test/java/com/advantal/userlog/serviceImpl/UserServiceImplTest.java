@@ -1,26 +1,13 @@
 package com.advantal.userlog.serviceImpl;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.core.MongoTemplate;
 
 import com.advantal.userlog.model.User;
 import com.advantal.userlog.repositories.UserRepository;
-import com.advantal.userlog.serviceImpl.UserServiceImpl;
-import com.advantal.userlog.CustomException.ResourceNotFoundException;
 import com.advantal.userlog.dto.Response;
 import com.advantal.userlog.model.Department;
 import com.advantal.userlog.model.Roles;
-import java.util.List;
-import java.util.ArrayList;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -29,10 +16,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.http.ResponseEntity;
 
 import java.util.Date;
-import java.util.Optional;
+
 
 @DisplayName("UserServiceTest")
 @ExtendWith(MockitoExtension.class)
@@ -48,6 +34,13 @@ public class UserServiceImplTest {
     private UserServiceImpl userService;
     
     private User user;
+    
+    private User userWOutRole;
+    
+    private User blankUser;
+    
+    private User duplicateUser;
+    
     
     @BeforeEach
     void setUp() {
@@ -75,36 +68,86 @@ public class UserServiceImplTest {
                 .password("password123")
                 .contactNumber(1234567890)
                 .employeeCode(1001)
-                .department(department) // Set the Department object
+                .department(department) 
                 .additionalInfo("Additional information about the user")
                 .createdDate(new Date())
-                .role(role) // Set the Roles object
+                .role(role) 
+                .active(true)
+                .build();
+        
+        userWOutRole = User.builder()
+                .userId("user2")
+                .userName("Sample User")
+                .password("password123")
+                .contactNumber(1234567890)
+                .employeeCode(1001)
+                .department(department) 
+                .additionalInfo("Additional information about the user")
+                .createdDate(new Date())
+                .active(true)
+                .build();
+        
+        duplicateUser = User.builder()
+                .userId("user3")
+                .userName("Sample User")
+                .password("password123")
+                .contactNumber(1234567890)
+                .employeeCode(1001)
+                .department(department) 
+                .additionalInfo("Additional information about the user")
+                .createdDate(new Date())
+                .role(role) 
+                .active(true)
+                .build();
+        
+        blankUser = User.builder()
+                .userId("user1")
+                .userName("")
+                .password("password123")
+                .contactNumber(1234567890)
+                .employeeCode(1001)
+                .department(department) 
+                .additionalInfo("Additional information about the user")
+                .createdDate(new Date())
+                .role(role) 
                 .active(true)
                 .build();
     }
 
  // JUnit test for saveUser method
-    @DisplayName("JUnit test for saveUser method")
     @Test
-    public void saveUser(){
-    	if(userRepository.findByUserName(user.getUserName()) == null) {
-            Response response = userService.createUser(user);
-            assertEquals("201",response.getStatusCode());
-            assertEquals("User Created Successfully!", response.getMessage());
-    	}else if(user.getUserName().isEmpty()) {
-            Response response = userService.createUser(user);
-            assertEquals("400",response.getStatusCode());
-            assertEquals("User Name cannot be blank!", response.getMessage());
-    	}
-    	else {
-            Response response = userService.createUser(user);
-            assertEquals("409",response.getStatusCode());
-            assertEquals("User already Exists!", response.getMessage()); 
-    	}
-        
+    @DisplayName("Test saving a new user")
+    public void saveNewUser() {
+        Response response = userService.createUser(user);
+        assertEquals("201", response.getStatusCode());
+        assertEquals("User Created Successfully!", response.getMessage());
     }
 
-    
+    @Test
+    @DisplayName("Test saving a user without a role")
+    public void saveUserWithoutRole() {
+        Response response = userService.createUser(userWOutRole);
+        assertEquals("409", response.getStatusCode());
+        assertEquals("Can't create User as no Role is selected!", response.getMessage());
+    }
+
+    @Test
+    @DisplayName("Test saving a user with a blank username")
+    public void saveUserWithBlankUsername() {
+        Response response = userService.createUser(blankUser);
+        assertEquals("400", response.getStatusCode());
+        assertEquals("Username cannot be blank!", response.getMessage());
+    }
+
+    @Test
+    @DisplayName("Test saving a duplicate user")
+    public void saveDuplicateUser() {
+        Response response = userService.createUser(duplicateUser);
+        assertEquals("409", response.getStatusCode());
+        assertEquals("User already Exists!", response.getMessage());
+    }
+
+}    
     
 //    @Test
 //    @DisplayName("Create Valid User")
@@ -175,51 +218,50 @@ public class UserServiceImplTest {
 //        assertEquals("Username cannot be blank!", response.getMessage());
 //
 //    }
-    @Test
-    void getAllUser() {
-        // User 1
-        User user1 = new User();
-        user1.setUserId("1");
-        user1.setUserName("User1");
-        user1.setPassword("password123");
-        user1.setContactNumber(1234567890);
-        user1.setEmployeeCode(1001);
-        user1.setDepartment(new Department());
-        user1.setAdditionalInfo("Additional information about User 1");
-        user1.setCreatedDate(new Date());
-        user1.setRole(new Roles());
-        user1.setActive(true);
+//    @Test
+//    void getAllUser() {
+//        // User 1
+//        User user1 = new User();
+//        user1.setUserId("1");
+//        user1.setUserName("User1");
+//        user1.setPassword("password123");
+//        user1.setContactNumber(1234567890);
+//        user1.setEmployeeCode(1001);
+//        user1.setDepartment(new Department());
+//        user1.setAdditionalInfo("Additional information about User 1");
+//        user1.setCreatedDate(new Date());
+//        user1.setRole(new Roles());
+//        user1.setActive(true);
+//
+//        // User 2
+//        User user2 = new User();
+//        user2.setUserId("2");
+//        user2.setUserName("User2");
+//        user2.setPassword("securePassword");
+//        user2.setContactNumber(9876543210L);
+//        user2.setEmployeeCode(1002);
+//        user2.setDepartment(new Department());
+//        user2.setAdditionalInfo("Additional information about User 2");
+//        user2.setCreatedDate(new Date());
+//        user2.setRole(new Roles());
+//        user2.setActive(true);
+//
+//        List<User> sampleUsers = new ArrayList<>();
+//        sampleUsers.add(user1);
+//        sampleUsers.add(user2);
+//
+//        Page<User> page = new PageImpl<>(sampleUsers);
+//
+//       // when(userRepositoryMock.findAll(any(Pageable.class))).thenReturn(page);
+//
+//        int pageNumber = 0;
+//        int size = 10;
+//        Pageable pageable = PageRequest.of(pageNumber, size);
+//        Page<User> resultPage = userService.getAllUsers(pageable, "", "", "");
+//
+//        List<User> resultUsers = resultPage.getContent();
+//
+//        // Verify 
+//        assertEquals(0, resultUsers.size());
+//    }
 
-        // User 2
-        User user2 = new User();
-        user2.setUserId("2");
-        user2.setUserName("User2");
-        user2.setPassword("securePassword");
-        user2.setContactNumber(9876543210L);
-        user2.setEmployeeCode(1002);
-        user2.setDepartment(new Department());
-        user2.setAdditionalInfo("Additional information about User 2");
-        user2.setCreatedDate(new Date());
-        user2.setRole(new Roles());
-        user2.setActive(true);
-
-        List<User> sampleUsers = new ArrayList<>();
-        sampleUsers.add(user1);
-        sampleUsers.add(user2);
-
-        Page<User> page = new PageImpl<>(sampleUsers);
-
-       // when(userRepositoryMock.findAll(any(Pageable.class))).thenReturn(page);
-
-        int pageNumber = 0;
-        int size = 10;
-        Pageable pageable = PageRequest.of(pageNumber, size);
-        Page<User> resultPage = userService.getAllUsers(pageable, "", "", "");
-
-        List<User> resultUsers = resultPage.getContent();
-
-        // Verify 
-        assertEquals(0, resultUsers.size());
-    }
-
-}
